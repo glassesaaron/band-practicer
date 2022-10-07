@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Band Practicer</title>
+    <style>
+        body {
+            margin: 0px;
+            padding: 0px;
+            font-family: Helvetica Neue,Helvetica,Arial,sans-serif; 
+        }
+
+        button {
+            width: 46%;
+            margin: 1rem 1%;
+            padding: 0.5rem;
+            border: 2px solid #333333;
+            background: none;
+            cursor: pointer;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 44%;
+            margin: 1rem 1%;
+            padding: 0.5rem;
+            border: 2px solid #333333;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 100%;
+            height: 5rem;
+            padding: 0.5rem;
+            border: 2px solid #333333;
+        }
+
+        h1 {
+            font-size: 100px;
+            margin: 20px 0px;
+        }
+
+        table {
+            font-size: 30px;
+        }
+
+        table a {
+            color: #000000;
+        }
+
+        #content {
+            width: 80%;
+            margin: 0px auto 50px auto;
+            text-align: center;
+        }
+
+        #song-list {
+            margin-bottom: 3rem;
+        }
+
+        #song-list table {
+            width: 100%;
+        }
+
+        .table-header {
+            width: 50%;
+            font-weight: bold;
+        }
+
+        #next-button {
+            width: 98%;
+            display: none;
+            margin-top: 30px;
+        }
+
+        #import-button {
+            display: none;
+        }
+
+        #export-textarea {
+            display: none;
+        }
+
+        .record-text {
+            color: #FF0000;
+        }
+    </style>
+</head>
+<style>
+
+</style>
+<body>
+
+    <div id="content">
+        <button id="next-button">Next</button>
+        <button id="randomize-button">Randomize</button>
+        <button id="start-button">Start</button>
+        <h1>Current Song:</h1>
+        <h1 id="current-song">--</h1>
+        <input id="record-count-input" placeholder="# of songs to record" type="text" value="2"></input>
+        <button id="export-button">Export Song List</button>
+        <button id="import-button">Import Song List</button>
+        <textarea id="export-textarea"></textarea>
+        <br /><br />
+        <div id="song-list"></div>
+    </div>
+
+    <script type="text/javascript">
+
+        // Knuth Shuffle
+        // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+
+            // While there remain elements to shuffle.
+            while (currentIndex != 0) {
+
+                // Pick a remaining element.
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+
+                // And swap it with the current element.
+                [array[currentIndex], array[randomIndex]] = [
+                array[randomIndex], array[currentIndex]];
+            }
+
+            return array;
+        }
+
+        //-----------------------------------------------------------------
+
+
+        let Song = class {
+            constructor(name, key) {
+                this.name = name;
+                this.key = key;
+                this.record = false;
+                this.played = false;
+            }
+        };
+        let songList = [];
+        let songListFinished = [];
+        let currentSong = null;
+        let recordCount = 0;
+
+        let exportSongList = () => {
+            let exportList = [];
+            document.getElementById('export-textarea').value = songList.map(song=>`${song.name},${song.key}`).join('\n');
+            document.getElementById('export-textarea').style.display = 'block';
+            document.getElementById('export-button').style.display = 'none';
+            document.getElementById('import-button').style.display = 'inline-block';
+        }
+
+        let importSongList = () => {
+            let importList = [];
+            let rawImport = document.getElementById('export-textarea').value.split('\n');
+            songList = [];
+            for(let song of rawImport){
+                let songSplit = song.split(',');
+                if(songSplit.length < 2){
+                    alert('Invalid song list!');
+                    return;
+                }
+                let songName = songSplit.slice(0, songSplit.length-1).join('').trim();
+                let songKey = songSplit[songSplit.length-1].trim();
+                songList.push(new Song(songName, songKey));
+            }
+            localStorage.setItem('songList', JSON.stringify(songList));
+            document.getElementById('export-textarea').style.display = 'none';
+            document.getElementById('export-button').style.display = 'inline-block';
+            document.getElementById('import-button').style.display = 'none';
+            drawSongList();
+        }
+
+        let drawSongList = () => {
+            const div = document.getElementById('song-list');
+            const table = document.createElement('table');
+            table.innerHTML = '<tr><td class="table-header">Song Name</td><td class="table-header">Song Key</td></tr>'
+            for(let song of songList){
+                const row = document.createElement('tr');
+                row.innerHTML = `<td><a href="https://www.youtube.com/results?search_query=${song.name}">${song.name}</a></td><td>${song.key}</td><td></td>`;
+                table.appendChild(row);
+            }
+            div.innerHTML = '';
+            div.appendChild(table);
+        }
+
+        let randomizeSongList = () => {
+            // group songs by key
+            let songLists = new Map();
+            let keys = [];
+            for(let song of songList){
+                if(!songLists.has(song.key)){
+                    songLists.set(song.key, []);
+                    keys.push(song.key);
+                }
+                songLists.get(song.key).push(song);
+            }
+
+            // randomize keys list
+            shuffle(keys);
+            
+            // rebuild master song list
+            songList = [];
+            while(keys.length > 0){
+                let key = keys.shift();
+                // randomize the list of songs in a key
+                shuffle(songLists.get(key));
+                for(let song of songLists.get(key)){
+                    songList.push(song);
+                }
+            }
+
+            drawSongList();
+        }
+
+        let markSongsToRecord = () => {
+            let songsToRecord = new Set();
+            while(songsToRecord.size < recordCount){
+                let random = Math.floor(Math.random() * songList.length);
+                if(!songsToRecord.has(random)){
+                    songsToRecord.add(random);
+                    songList[random].record = true;
+                }
+            }
+        }
+
+        let startPlaylist = () => {
+            if(document.getElementById('record-count-input').value.length > 0){
+                let recordCountInput = parseInt(document.getElementById('record-count-input').value);
+                if(isNaN(recordCountInput)){
+                    alert('Songs to record must be a valid number!');
+                    return;
+                }
+                if(recordCountInput > songList.length){
+                    alert('Cannot record more songs than in list!');
+                    return;
+                }
+                recordCount = recordCountInput;
+            }
+            markSongsToRecord();
+            document.getElementById('randomize-button').style.display = 'none';
+            document.getElementById('start-button').style.display = 'none';
+            document.getElementById('export-button').style.display = 'none';
+            document.getElementById('import-button').style.display = 'none';
+            document.getElementById('record-count-input').style.display = 'none';
+            document.getElementById('export-textarea').style.display = 'none';
+            document.getElementById('next-button').style.display = 'block';
+            songListFinished = [];
+            playNextSong();
+        }
+
+        let playNextSong = () => {
+            if(currentSong){
+                songListFinished.push(currentSong);
+            }
+            currentSong = songList.shift();
+            document.getElementById('current-song').innerHTML = currentSong.name;
+            if(currentSong.record){
+                let recordText = document.createElement('span');
+                recordText.classList.add('record-text');
+                recordText.innerHTML = '(RECORD)';
+                document.getElementById('current-song').innerHTML += ' ';
+                document.getElementById('current-song').appendChild(recordText);
+            }
+            drawSongList();
+            if(songList.length === 0){
+                document.getElementById('song-list').style.display = 'none';
+                document.getElementById('next-button').style.display = 'none';
+            }
+        }
+
+        if(localStorage.getItem('songList') !== null){
+            songList = JSON.parse(localStorage.getItem('songList'));
+        } else {
+            songList.push(new Song('All The Small Things', 'E'));
+            songList.push(new Song('Ocean Avenue', 'D'));
+            songList.push(new Song('My Own Worst Enemy', 'E'));
+            songList.push(new Song('Sugar, We\'re Going Down', 'E'));
+            songList.push(new Song('Basket Case', 'Eb'));
+        }
+        drawSongList();
+
+        document.getElementById('randomize-button').addEventListener('click', randomizeSongList);
+        document.getElementById('start-button').addEventListener('click', startPlaylist);
+        document.getElementById('next-button').addEventListener('click', playNextSong);
+        document.getElementById('export-button').addEventListener('click', exportSongList);
+        document.getElementById('import-button').addEventListener('click', importSongList);
+    
+    </script>
+
+</body>
+</html>
