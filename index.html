@@ -180,7 +180,7 @@
             table.innerHTML = '<tr><td class="table-header">Song Name</td><td class="table-header">Song Key</td></tr>'
             for(let song of songList){
                 const row = document.createElement('tr');
-                row.innerHTML = `<td><a href="https://www.youtube.com/results?search_query=${song.name}">${song.name}</a></td><td>${song.key}</td><td></td>`;
+                row.innerHTML = `<td><a href="https://www.youtube.com/results?search_query=${song.name}" target="_blank">${song.name}</a></td><td>${song.key}</td><td></td>`;
                 table.appendChild(row);
             }
             div.innerHTML = '';
