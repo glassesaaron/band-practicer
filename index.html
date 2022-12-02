@@ -97,8 +97,9 @@
         <button id="next-button">Next</button>
         <button id="randomize-button">Randomize</button>
         <button id="start-button">Start</button>
-        <h1>Current Song:</h1>
+        <h1 id="current-song-header">Current Song:</h1>
         <h1 id="current-song">--</h1>
+        <img id="random-gif" />
         <input id="record-count-input" placeholder="# of songs to record" type="text" value="2"></input>
         <button id="export-button">Export Song List</button>
         <button id="import-button">Import Song List</button>
@@ -253,6 +254,13 @@
         }
 
         let playNextSong = () => {
+            if(songList.length === 0){
+                document.getElementById('next-button').style.display = 'none';
+                document.getElementById('current-song-header').style.display = 'none';
+                document.getElementById('current-song').innerHTML = 'You did it!';
+                fetchRandomGif();
+                return;
+            }
             if(currentSong){
                 songListFinished.push(currentSong);
             }
@@ -268,7 +276,16 @@
             drawSongList();
             if(songList.length === 0){
                 document.getElementById('song-list').style.display = 'none';
-                document.getElementById('next-button').style.display = 'none';
+            }
+        }
+
+        let fetchRandomGif = async () => {
+            // randomly found the api key, don't care that it's listed here
+            let giphyURL = 'https://api.giphy.com/v1/gifs/random?api_key=0UTRbFtkMxAplrohufYco5IY74U8hOes&tag=fail&rating=R';
+            let response = await fetch(giphyURL);
+            if(response.ok){
+                let giphyResponse = await response.json();
+                document.getElementById('random-gif').src = giphyResponse.data.images.original.url;
             }
         }
 
