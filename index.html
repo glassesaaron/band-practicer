@@ -12,6 +12,8 @@
 
         a {
             color: #000000;
+            text-decoration: underline;
+            cursor: pointer;
         }
 
         button {
@@ -123,6 +125,33 @@
             background: #000000;
             cursor: pointer;
         }
+
+        #coin-toss-container {
+            font-size: 25px;
+            display: none;
+        }
+
+        #modal {
+            display: none;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        #modal-content {
+            width: 600px;
+            height: 400px;
+            margin: 50px auto;
+            padding: 100px 0px;
+            background-color: #FFFFFF;
+            text-align: center;
+            font-size: 100px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <style>
@@ -130,6 +159,9 @@
 </style>
 <body>
 
+    <div id="modal">
+        <div id="modal-content"></div>
+    </div>
     <div id="content">
         <input type="range" min="50" max="200" value="100" class="slider" id="current-song-font-size">
         <button id="next-button">Next</button>
@@ -137,6 +169,9 @@
         <button id="start-button">Start</button>
         <h1 id="current-song-header">Current Song:</h1>
         <h1 id="current-song">--</h1>
+        <div id="coin-toss-container">
+            Don't feel like playing this song? <a href="#" id="coin-toss-link">Coin Toss</a>
+        </div>
         <img id="random-gif" />
         <input id="record-count-input" placeholder="# of songs to record" type="text" value="2"></input>
         <button id="export-button">Export Song List</button>
@@ -287,6 +322,7 @@
             document.getElementById('record-count-input').style.display = 'none';
             document.getElementById('export-textarea').style.display = 'none';
             document.getElementById('next-button').style.display = 'block';
+            document.getElementById('coin-toss-container').style.display = 'block';
             songListFinished = [];
             playNextSong();
         }
@@ -295,6 +331,7 @@
             if(songList.length === 0){
                 document.getElementById('next-button').style.display = 'none';
                 document.getElementById('current-song-header').style.display = 'none';
+                document.getElementById('coin-toss-container').style.display = 'none';
                 document.getElementById('current-song').innerHTML = 'You did it!';
                 fetchRandomGif();
                 return;
@@ -333,6 +370,38 @@
             document.getElementById('current-song').style.fontSize = fontSize;
         }
 
+        let coinToss = () => {
+            document.getElementById('modal').style.display='block';
+            coinTossHelper();
+            return false;
+        }
+
+        let coinTossHelper = (i,seed) => {
+            if(!i){
+                i=0;
+                seed = Math.round(Math.random());
+            }
+            let speed = 10;
+            document.getElementById('modal-content').innerHTML = (i % (speed*2) === 0) ? (seed ? 'PLAY' : 'DON\'T') : (seed ? 'DON\'T' : 'PLAY');
+            let next = i+speed;
+            if(next<(speed*30)){
+                setTimeout(()=>{coinTossHelper(next,seed)},next);
+                return;
+            }
+            const lastResult = document.getElementById('modal-content').innerHTML;
+            document.getElementById('modal-content').innerHTML = `🎉 ${lastResult} 🎉<br />`;
+            const doneLink = document.createElement('a');
+            doneLink.innerHTML = 'Done';
+            doneLink.style.fontSize = '25px';
+            doneLink.addEventListener('click', hideModal);
+            document.getElementById('modal-content').appendChild(doneLink);
+        }
+
+        let hideModal = () => {
+            document.getElementById('modal').style.display='none';
+            return false;
+        }
+
         if(localStorage.getItem('songList') !== null){
             songList = JSON.parse(localStorage.getItem('songList'));
         } else {
@@ -349,6 +418,7 @@
         document.getElementById('next-button').addEventListener('click', playNextSong);
         document.getElementById('export-button').addEventListener('click', exportSongList);
         document.getElementById('import-button').addEventListener('click', importSongList);
+        document.getElementById('coin-toss-link').addEventListener('click', coinToss);
         document.getElementById('current-song-font-size').oninput = changeSongFontSize;
     
     </script>
