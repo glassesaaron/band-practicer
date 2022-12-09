@@ -97,7 +97,7 @@
         .slider {
             -webkit-appearance: none;
             width: 100%;
-            height: 25px;
+            height: 10px;
             background: #d3d3d3;
             border: 0px;
             outline: none;
@@ -113,15 +113,15 @@
         .slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 25px;
-            height: 25px;
+            width: 8px;
+            height: 8px;
             background: #000000;
             cursor: pointer;
         }
 
         .slider::-moz-range-thumb {
-            width: 25px;
-            height: 25px;
+            width: 8px;
+            height: 8px;
             background: #000000;
             cursor: pointer;
         }
@@ -332,6 +332,7 @@
                 document.getElementById('next-button').style.display = 'none';
                 document.getElementById('current-song-header').style.display = 'none';
                 document.getElementById('coin-toss-container').style.display = 'none';
+                document.getElementById('current-song-font-size').style.display = 'none';
                 document.getElementById('current-song').innerHTML = 'You did it!';
                 fetchRandomGif();
                 return;
