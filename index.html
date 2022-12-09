@@ -41,17 +41,18 @@
             border: 2px solid #333333;
         }
 
-        h1 {
-            font-size: 100px;
-            margin: 20px 0px;
-        }
-
         table {
             font-size: 30px;
         }
 
-        table a {
-            color: #000000;
+        #current-song-header {
+            font-size: 100px;
+            margin: 20px 0px;
+        }
+
+        #current-song {
+            font-size: 100px;
+            margin: 20px 0px;
         }
 
         #content {
@@ -90,6 +91,38 @@
         .record-text {
             color: #FF0000;
         }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 25px;
+            background: #d3d3d3;
+            border: 0px;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+        }
+
+        .slider:hover {
+            opacity: 1;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #000000;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            background: #000000;
+            cursor: pointer;
+        }
     </style>
 </head>
 <style>
@@ -98,6 +131,7 @@
 <body>
 
     <div id="content">
+        <input type="range" min="50" max="200" value="100" class="slider" id="current-song-font-size">
         <button id="next-button">Next</button>
         <button id="randomize-button">Randomize</button>
         <button id="start-button">Start</button>
@@ -293,6 +327,12 @@
             }
         }
 
+        let changeSongFontSize = () => {
+            let fontSize = document.getElementById('current-song-font-size').value + 'px';
+            document.getElementById('current-song-header').style.fontSize = fontSize;
+            document.getElementById('current-song').style.fontSize = fontSize;
+        }
+
         if(localStorage.getItem('songList') !== null){
             songList = JSON.parse(localStorage.getItem('songList'));
         } else {
@@ -309,6 +349,7 @@
         document.getElementById('next-button').addEventListener('click', playNextSong);
         document.getElementById('export-button').addEventListener('click', exportSongList);
         document.getElementById('import-button').addEventListener('click', importSongList);
+        document.getElementById('current-song-font-size').oninput = changeSongFontSize;
     
     </script>
 
