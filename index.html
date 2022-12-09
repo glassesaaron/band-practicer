@@ -10,6 +10,10 @@
             font-family: Helvetica Neue,Helvetica,Arial,sans-serif; 
         }
 
+        a {
+            color: #000000;
+        }
+
         button {
             width: 46%;
             margin: 1rem 1%;
@@ -265,7 +269,7 @@
                 songListFinished.push(currentSong);
             }
             currentSong = songList.shift();
-            document.getElementById('current-song').innerHTML = currentSong.name;
+            document.getElementById('current-song').innerHTML = `<a href="https://www.youtube.com/results?search_query=${currentSong.name}" target="_blank">${currentSong.name}</a>`;
             if(currentSong.record){
                 let recordText = document.createElement('span');
                 recordText.classList.add('record-text');
